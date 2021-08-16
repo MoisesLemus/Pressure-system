@@ -1,0 +1,52 @@
+# Pressure-system
+# Enable interactive plot
+%matplotlib notebook
+import matplotlib.pyplot as plt
+import mpl_toolkits.axes_grid1 as axes_grid1
+import matplotlib.animation as animation
+import serial
+
+#initialize serial port
+ser = serial.Serial()
+ser.port = 'COM4' #ESP32 serial port
+ser.baudrate = 115200
+ser.timeout = 10 #specify timeout when using readline()
+ser.open()
+if ser.is_open==True:
+    print("\nSerial port now open. Configuration:\n")
+    print(ser, "\n") #print serial parameters   
+
+    #check data is being received    
+sensor_data_txt = str(ser.readline()[:-2])[2:-1]
+print(sensor_data_txt) 
+
+# split into an array of numbers 
+numbers = [float(x) for x in sensor_data_txt.split(',')]
+
+#convert into a 2D array using slicing
+#data = [numbers[0:3],numbers[3:6],numbers[6:9]]
+data = [numbers[0:5],numbers[5:10],numbers[10:15],numbers[15:20]]
+    
+# set up the figure
+fig = plt.figure()
+ax1 = fig.add_subplot(1,1,1)
+img = ax1.imshow(data, cmap='jet',vmin=2000, vmax=4000)
+
+
+def animate(i):    
+       
+    # get the data from the serial port, trim off extra characters
+    sensor_data_txt = str(ser.readline()[:-2])[2:-1]
+    print(sensor_data_txt)
+
+    # split into an array of numbers 
+    numbers = [float(x) for x in sensor_data_txt.split(',')]
+    #convert into a 2D array using slicing
+    data = [numbers[0:5],numbers[5:10],numbers[10:15],numbers[15:20]]
+    
+    # update display with new data
+    img.set_array(data)
+
+ani = animation.FuncAnimation(fig, animate, interval=1000)
+plt.show()
+
